@@ -2,16 +2,17 @@ package main
 
 import (
 	"net/http"
+
+	"errors"
+
 	"github.com/gin-gonic/gin"
-	//"errors"
 )
 
 type book struct {
-	ID string `json:"id"`
-	Title string `json:"title"`
-	Author string `json:"author"`
-	Quantity int `json:"quantity"`
-	
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Author   string `json:"author"`
+	Quantity int    `json:"quantity"`
 }
 
 var books = []book{
@@ -89,9 +90,23 @@ func getBookById(id string) (*book, error) {
 	return nil, errors.New("book not found")
 }
 
+func createBook(c *gin.Context) {
+	var newBook book
+
+	if err := c.BindJSON(&newBook); err != nil {
+		return
+	}
+
+	books = append(books, newBook)
+	c.IndentedJSON(http.StatusCreated, newBook)
+}
 
 func main() {
 	router := gin.Default()
 	router.GET("/books", getBooks)
+	router.GET("/books/:id", bookById)
+	router.POST("/books", createBook)
+	router.PATCH("/checkout", checkoutBook)
+	router.PATCH("/return", returnBook)
 	router.Run("localhost:8080")
 }
